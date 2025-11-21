@@ -15,9 +15,16 @@ CORS(app, supports_credentials=True)
 # --- Add a secret key for session management ---
 app.config['SECRET_KEY'] = os.urandom(24)
 
+db_uri = os.getenv(
+    "DATABASE_URL",
+    "postgresql://postgres:23562@localhost:5432/VocationalUdaan"
+)
+
 # --- DATABASE CONFIGURATION ---
 db_uri = "postgresql://postgres:23562@localhost:5432/VocationalUdaan"
 #db_uri="postgresql://neondb_owner:npg_vWE5oT3FhZAp@ep-plain-pond-a116bs24-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+if db_uri.startswith("postgres://"):
+    db_uri = db_uri.replace("postgres://", "postgresql://", 1)
 app.config['SQLALCHEMY_DATABASE_URI'] = db_uri
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -403,3 +410,4 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
     app.run(debug=True)
+
