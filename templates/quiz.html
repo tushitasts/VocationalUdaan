@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Career Quiz - Vocational Udaan</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Career Recommendation Quiz</h1>
+        <form action="/recommend" method="post">
+            <label for="education">Your Education Level:</label>
+            <select name="education" id="education" required>
+                <option value="">-- Select --</option>
+                <option value="Below 10th">Below 10th</option>
+                <option value="10th Pass">10th Pass</option>
+                <option value="12th Pass">12th Pass</option>
+                <option value="Graduate">Graduate</option>
+            </select>
+
+            <label for="interests">Your Interests:</label>
+            <input type="text" id="interests" name="interests" placeholder="e.g., Technology, Design, Agriculture" required>
+
+            <label for="skills">Your Skill Level:</label>
+            <select id="skills" name="skills" required>
+                <option value="">-- Select --</option>
+                <option value="Beginner">Beginner</option>
+                <option value="Intermediate">Intermediate</option>
+                <option value="Advanced">Advanced</option>
+            </select>
+
+            <button type="submit">Get My Recommendations</button>
+        </form>
+    </div>
+</body>
+</html>

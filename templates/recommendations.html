@@ -1,0 +1,114 @@
+<!-- templates/recommendations.html -->
+{% extends "base.html" %}
+{% block content %}
+<style>
+/* Lightweight card layout (no external CSS required) */
+.r-container { max-width:1100px; margin:24px auto; padding:16px; font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; }
+.header { background:#f5f6fa; padding:20px; border-radius:10px; margin-bottom:18px; }
+.h-title { font-size:28px; color:#2b5fb3; margin:0 0 6px 0; font-weight:700; }
+.h-meta { color:#4b5563; margin:0; font-size:14px; line-height:1.5; }
+.cards { display:grid; grid-template-columns:1fr; gap:16px; }
+@media(min-width:900px){ .cards { grid-template-columns:1fr 1fr; } }
+
+.card { background:#fff; border:1px solid #e6e9ef; border-radius:10px; padding:18px; box-shadow:0 1px 2px rgba(16,24,40,0.03); }
+.title { font-size:20px; margin:0 0 8px 0; color:#111827; font-weight:600; }
+.badges { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px; }
+.badge { font-size:12px; padding:4px 8px; border-radius:999px; background:#eef2ff; color:#3730a3; border:1px solid #e0e7ff; }
+.desc { color:#374151; font-size:14px; margin-bottom:12px; white-space:pre-line; }
+.meta-row { display:flex; gap:16px; color:#374151; font-size:13px; margin-bottom:12px; flex-wrap:wrap; }
+.earn { font-weight:600; color:#0b5d3a; }
+.actions { display:flex; gap:10px; align-items:center; margin-top:6px; }
+.btn { display:inline-block; padding:10px 14px; border-radius:8px; text-decoration:none; background:#3b82f6; color:#fff; border:none; cursor:pointer; font-weight:600; font-size:14px; }
+.btn.secondary { background:#fff; color:#374151; border:1px solid #e6e9ef; }
+.save-link { color:#6b21a8; text-decoration:underline; font-size:14px; }
+.centres { margin-top:12px; background:#fbfdff; border:1px solid #eef2ff; padding:12px; border-radius:8px; }
+.c-item { padding:8px 0; border-bottom:1px dashed #e6e9ef; }
+.c-item:last-child { border-bottom:none; }
+.c-name { font-weight:600; color:#111827; }
+.c-meta { color:#475569; font-size:13px; margin-top:4px; }
+.empty { color:#6b7280; font-size:14px; padding:8px 0; }
+</style>
+
+<div class="r-container">
+  <div class="header">
+    <h1 class="h-title">Hello {{ user.name or "there" }}, here are courses you may consider</h1>
+    <p class="h-meta">
+      <strong>Interests:</strong> {{ user.interests or "—" }} &nbsp;•&nbsp;
+      <strong>Education:</strong> {{ user.education_level or "—" }} &nbsp;•&nbsp;
+      <strong>Skill level:</strong> {{ user.skill_level or "None" }}
+    </p>
+  </div>
+
+  <div class="cards">
+    {% for t in tracks %}
+    <article class="card" id="track-{{ t.id }}">
+      <h2 class="title">{{ t.title or t.name }}</h2>
+
+      <div class="badges">
+        {% if t.sector %}<span class="badge">{{ t.sector }}</span>{% endif %}
+        {% if t.recommended_skill_level %}<span class="badge">Skill: {{ t.recommended_skill_level }}</span>{% endif %}
+        {% if t.duration %}<span class="badge">Duration: {{ t.duration }} mo</span>{% endif %}
+      </div>
+
+      {% if t.description %}
+      <p class="desc">{{ t.description }}</p>
+      {% endif %}
+
+      <div class="meta-row">
+        <div class="earn">Earnings: ₹{{ t.earning_low or '—' }}{% if t.earning_high %}–₹{{ t.earning_high }}{% endif %}/mo</div>
+        {# Score removed on purpose #}
+      </div>
+
+      <div class="actions">
+        <button class="btn" type="button" data-target="centres-{{ t.id }}" onclick="toggleCentres(event)">View Centres</button>
+        <a class="save-link" href="#" onclick="alert('Saved (demo)'); return false;">Save plan</a>
+        <a class="btn secondary" href="{{ url_for('index') }}">Back to Home</a>
+      </div>
+
+      <!-- centres (hidden by default) -->
+      <div id="centres-{{ t.id }}" class="centres" style="display:none;">
+        <h4 style="margin:0 0 8px 0; font-weight:700; color:#0f172a;">Nearby Centres</h4>
+
+        {% if t.centres and t.centres|length > 0 %}
+          <div>
+            {% for c in t.centres %}
+              <div class="c-item">
+                <div class="c-name">{{ c.name or 'Unnamed Centre' }}</div>
+                <div class="c-meta">{{ c.address or 'Address not provided' }}</div>
+                <div class="c-meta">Pincode: {{ c.pincode or '—' }} • Phone: {{ c.phone or '—' }}</div>
+                {% if c.courses %}<div class="c-meta">Courses: {{ c.courses }}</div>{% endif %}
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="empty">No centres found nearby.</div>
+        {% endif %}
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+
+  {% if not tracks %}
+  <div style="margin-top:18px; padding:14px; border-radius:8px; background:#fff3cd; color:#856404;">No recommendations found. Try editing your interests or education level.</div>
+  {% endif %}
+</div>
+
+<script>
+function toggleCentres(e){
+  // e is click event; button has data-target attribute pointing to centres ID
+  var btn = e.currentTarget;
+  var id = btn.getAttribute('data-target');
+  if(!id) return;
+  var el = document.getElementById(id);
+  if(!el) return;
+  if(el.style.display === 'none' || el.style.display === ''){
+    el.style.display = 'block';
+    btn.textContent = 'Hide Centres';
+    el.scrollIntoView({behavior:'smooth', block:'center'});
+  } else {
+    el.style.display = 'none';
+    btn.textContent = 'View Centres';
+  }
+}
+</script>
+{% endblock %}
