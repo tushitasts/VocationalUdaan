@@ -34,7 +34,7 @@
     <h1 class="h-title">Hello {{ user.name or "there" }}, here are courses you may consider</h1>
     <p class="h-meta">
       <strong>Interests:</strong> {{ user.interests or "—" }} &nbsp;•&nbsp;
-      <strong>Education:</strong> {{ user.education_level or "—" }} &nbsp;•&nbsp;
+      <strong>Education:</strong> {{ user.education or "—" }} &nbsp;•&nbsp;
       <strong>Skill level:</strong> {{ user.skill_level or "None" }}
     </p>
   </div>
@@ -112,3 +112,4 @@ function toggleCentres(e){
 }
 </script>
 {% endblock %}
+
