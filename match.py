@@ -1,6 +1,6 @@
 from typing import List, Dict
 from models import VocationalTrack, TrainingCentre, CentreCourse
-from sqlalchemy import or_
+from sqlalchemy import or_, func
 
 # interest keyword -> sector mapping
 INTEREST_TO_SECTOR = {
@@ -141,4 +141,5 @@ def match_tracks(user, db_session) -> List[Dict]:
         })
 
     return results
+
 
