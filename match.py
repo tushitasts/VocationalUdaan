@@ -184,11 +184,11 @@ def match_tracks(user_profile, db_session) -> List[Dict]:
     # If we derived sectors, filter using case-insensitive partial matching,
     # so 'electronics' will match 'Electronics & Hardware' etc.
     if sectors:
-    conditions = []
-    for s in sectors:
-        s_norm = s.lower().replace("&", "and")
-        conditions.append(
-            func.lower(VocationalTrack.sector).like(f"%{s_norm}%")
+        conditions = []
+        for s in sectors:
+            s_norm = s.lower().replace("&", "and")
+            conditions.append(
+                func.lower(VocationalTrack.sector).like(f"%{s_norm}%")
         )
 
     q = q.filter(
@@ -226,5 +226,3 @@ def match_tracks(user_profile, db_session) -> List[Dict]:
             "centres": centres,
         })
     return results
-
-
