@@ -14,7 +14,6 @@ CORS(app, supports_credentials=True)
 
 # --- Add a secret key for session management ---
 app.config['SECRET_KEY'] = os.getenv("SECRET_KEY")
-
 db_uri = os.getenv(
     "DATABASE_URL",
     "postgresql://postgres:23562@localhost:5432/VocationalUdaan"
@@ -23,8 +22,10 @@ db_uri = os.getenv(
 # --- DATABASE CONFIGURATION ---
 #db_uri = "postgresql://postgres:23562@localhost:5432/VocationalUdaan"
 #db_uri="postgresql://neondb_owner:npg_vWE5oT3FhZAp@ep-plain-pond-a116bs24-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+
 if db_uri.startswith("postgres://"):
     db_uri = db_uri.replace("postgres://", "postgresql://", 1)
+
 app.config['SQLALCHEMY_DATABASE_URI'] = db_uri
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -56,81 +57,6 @@ def _is_api_request(req):
     return req.is_json or req.headers.get("X-Requested-With") == "XMLHttpRequest" \
            or "application/json" in (req.headers.get("Accept", "") or "")
 
-# @app.route('/signup', methods=['POST'])
-# def signup_user():
-#     data = request.json or request.form or {}
-#     # required fields check (works for both fetch/json and plain form)
-#     if not all(k in data for k in ['name', 'email', 'phone_number', 'password']):
-#         if request.is_json:
-#             return jsonify({'error': 'Name, email, phone_number and password are required.'}), 400
-#         flash("Please provide name, email, phone and password", "error")
-#         return redirect(url_for('index'))
-
-#     # duplicate check
-#     if User.query.filter_by(email=data['email']).first():
-#         if request.is_json:
-#             return jsonify({'error': 'A user with this email already exists.'}), 409
-#         flash("A user with this email already exists!", "error")
-#         # redirect to login page so user can sign in instead
-#         return redirect(url_for('index'))   # <-- browser redir to login page
-
-#     # create user
-#     new_user = User(
-#         name=data['name'],
-#         email=data['email'],
-#         phone_number=data['phone_number'],
-#         education=data.get('education')
-#     )
-#     # set password if method exists on model, else set hashed field
-#     if hasattr(new_user, 'set_password'):
-#         new_user.set_password(data['password'])
-#     else:
-#         new_user.password_hash = generate_password_hash(data['password'])
-
-#     db.session.add(new_user)
-#     db.session.commit()
-
-#     # After signup we DO NOT auto-login (you asked to redirect to login).
-#     if request.is_json:
-#         # tell frontend to redirect to login page
-#         return jsonify({'message': 'User created. Please login.', 'redirect': url_for('index')}), 201
-
-#     flash("Account created — please login.", "success")
-#     return redirect(url_for('index'))   # browser -> show login page
-
-
-# # ------------------ Login route (serve page on GET, handle auth on POST) ------------------
-# @app.route('/login', methods=['GET', 'POST'])
-# def login():
-#     # GET: render login page (form)
-#     if request.method == 'GET':
-#         return render_template('login.html')   # <-- make sure templates/login.html exists
-
-#     # POST: attempt authentication
-#     data = request.json or request.form or {}
-#     email = data.get('email')
-#     pwd = data.get('password')
-
-#     if not email or not pwd:
-#         if request.is_json:
-#             return jsonify({'error': 'email and password required'}), 400
-#         flash("Email and password required", "error")
-#         return redirect(url_for('login'))
-
-#     user = User.query.filter_by(email=email).first()
-#     # use your model's check_password if present
-#     if user and getattr(user, 'check_password', None) and user.check_password(pwd):
-#         login_user(user)
-#         if request.is_json:
-#             return jsonify({'message': 'Logged in successfully.', 'redirect': url_for('search')}), 200
-#         # browser login -> redirect to search page
-#         return redirect(url_for('search'))
-
-#     # invalid credentials
-#     if request.is_json:
-#         return jsonify({'error': 'Invalid email or password.'}), 401
-#     flash("Invalid email or password.", "error")
-#     return redirect(url_for('login'))
 
 @app.route('/signup', methods=['POST'])
 def signup_user():
@@ -333,43 +259,87 @@ def quiz():
     # render a questionnaire page (templates/quiz.html)
     return render_template("quiz.html")
 
+# @app.route("/recommend", methods=["GET", "POST"])
+# def recommend():
+#     if request.method == "GET":
+#         # if logged-in user, you may show personalized recommendations (optional).
+#         if current_user.is_authenticated:
+#             # Construct a lightweight user-like object for matching from current_user fields
+#             user_like = current_user
+#             tracks = []  # fallback: you can call your match logic here if you have one that accepts current_user
+#             # Example: tracks = match_tracks(user_like, db.session)
+#             return render_template("recommendations.html", user=current_user, tracks=tracks)
+#         # otherwise send them to quiz to fill details
+#         return redirect(url_for("quiz"))
 
-# Accept both GET and POST so browser redirects to /recommend (GET) don't 404.
-# POST: form submit from the quiz -> compute matches and render recommendations.
-# GET: if user is authenticated, show recommendations for current user; else redirect to quiz.
+#     # POST path: data came from quiz form
+#     name = request.form.get("name") or "Anonymous"
+#     age = request.form.get("age")
+#     #pincode = request.form.get("pincode")
+#     education = request.form.get("education")
+#     #language = request.form.get("language")
+#     interests = request.form.get("interests")  # can be comma-separated
+#     skill_level = request.form.get("skill_level")  # Beginner/Intermediate/Advanced
+
+#     # optionally persist the user info to DB for analytics (non-authenticated)
+#     new_user = User(
+#         name=name,
+#         age=(int(age) if age else None),
+#         #pincode=pincode,
+#         education=education,
+#         #language=language,
+#         interests=interests,
+#         skill_level=skill_level,
+#         # email/phone/password not set for anonymous quiz submit
+#     )
+
 @app.route("/recommend", methods=["GET", "POST"])
 def recommend():
     if request.method == "GET":
-        # if logged-in user, you may show personalized recommendations (optional).
         if current_user.is_authenticated:
-            # Construct a lightweight user-like object for matching from current_user fields
-            user_like = current_user
-            tracks = []  # fallback: you can call your match logic here if you have one that accepts current_user
-            # Example: tracks = match_tracks(user_like, db.session)
-            return render_template("recommendations.html", user=current_user, tracks=tracks)
-        # otherwise send them to quiz to fill details
+            return render_template(
+                "recommendations.html",
+                user=current_user,
+                tracks=[]
+            )
         return redirect(url_for("quiz"))
 
-    # POST path: data came from quiz form
+    # POST: quiz submission
     name = request.form.get("name") or "Anonymous"
     age = request.form.get("age")
-    #pincode = request.form.get("pincode")
     education = request.form.get("education")
-    #language = request.form.get("language")
-    interests = request.form.get("interests")  # can be comma-separated
-    skill_level = request.form.get("skill_level")  # Beginner/Intermediate/Advanced
+    interests = request.form.get("interests")
+    skill_level = request.form.get("skill_level")
 
-    # optionally persist the user info to DB for analytics (non-authenticated)
-    new_user = User(
+    class QuizUser:
+        def __init__(self, name, age, education, interests, skill_level):
+            self.name = name
+            self.age = age
+            self.education = education
+            self.interests = interests
+            self.skill_level = skill_level
+
+    quiz_user = QuizUser(
         name=name,
         age=(int(age) if age else None),
-        #pincode=pincode,
         education=education,
-        #language=language,
         interests=interests,
         skill_level=skill_level,
-        # email/phone/password not set for anonymous quiz submit
     )
+
+    try:
+        from match import match_tracks
+        tracks = match_tracks(quiz_user, db.session)
+    except Exception as e:
+        print("MATCH ERROR:", e)
+        tracks = []
+
+    return render_template(
+        "recommendations.html",
+        user=quiz_user,
+        tracks=tracks
+    )
+    
     db.session.add(new_user)
     db.session.commit()
 
@@ -410,6 +380,3 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
     app.run(debug=True)
-
-
-
