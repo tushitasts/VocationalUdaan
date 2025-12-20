@@ -1,6 +1,6 @@
 from typing import List, Dict
 from models import VocationalTrack, TrainingCentre, CentreCourse
-from sqlalchemy import or_
+from sqlalchemy import or_, func
 
 # interest keyword -> sector mapping (expand as you like)
 INTEREST_TO_SECTOR = {
@@ -184,15 +184,21 @@ def match_tracks(user_profile, db_session) -> List[Dict]:
     # If we derived sectors, filter using case-insensitive partial matching,
     # so 'electronics' will match 'Electronics & Hardware' etc.
     if sectors:
-        conditions = []
-        for s in sectors:
-            # Use ilike for partial matches; guard against None sector column
-            conditions.append(VocationalTrack.sector.ilike(f"%{s}%"))
-        q = q.filter(or_(*conditions))
+    conditions = []
+    for s in sectors:
+        s_norm = s.lower().replace("&", "and")
+        conditions.append(
+            func.lower(VocationalTrack.sector).like(f"%{s_norm}%")
+        )
+
+    q = q.filter(
+        VocationalTrack.sector.isnot(None),
+        or_(*conditions)
+    )
 
     tracks = q.all()
-    if not tracks:
-        tracks = db_session.query(VocationalTrack).all()
+    # if not tracks:
+    #     tracks = db_session.query(VocationalTrack).all()
 
     pfx = (getattr(user_profile, "pincode", "") or "")[:3]
 
@@ -220,4 +226,5 @@ def match_tracks(user_profile, db_session) -> List[Dict]:
             "centres": centres,
         })
     return results
+
 
