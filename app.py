@@ -340,8 +340,8 @@ def recommend():
         tracks=tracks
     )
     
-    db.session.add(new_user)
-    db.session.commit()
+    # db.session.add(new_user)
+    # db.session.commit()
 
     # call your matching function (ensure match_tracks imported from match.py)
     from match import match_tracks  # local import so file loads models first
@@ -380,3 +380,4 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
     app.run(debug=True)
+
