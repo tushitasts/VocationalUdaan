@@ -3,7 +3,7 @@ from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 import os
-from sqlalchemy import func
+from sqlalchemy import func, exc
 
 # ---------- use models.py (single source of truth) ----------
 # Make sure models.py defines: db, User, VocationalTrack, TrainingCentre, Career (if needed), CentreCourse (if needed)
@@ -275,37 +275,44 @@ def recommend():
             )
         return redirect(url_for("quiz"))
 
-    # POST: quiz submission
-    name = request.form.get("name") or "Anonymous"
-    age = request.form.get("age")
-    education = request.form.get("education")
-    interests = request.form.get("interests")
-    skill_level = request.form.get("skill_level")
+    try:
+        name = request.form.get("name") or "Anonymous"
+        age = request.form.get("age")
+        education = request.form.get("education")
+        interests = request.form.get("interests")
+        skill_level = request.form.get("skill_level")
 
-    class QuizUser:
-        def __init__(self, name, age, education, interests, skill_level):
-            self.name = name
-            self.age = age
-            self.education = education
-            self.interests = interests
-            self.skill_level = skill_level
+        class QuizUser:
+            def __init__(self, name, age, education, interests, skill_level):
+                self.name = name
+                self.age = age
+                self.education = education
+                self.interests = interests
+                self.skill_level = skill_level
 
-    quiz_user = QuizUser(
-        name=name,
-        age=(int(age) if age else None),
-        education=education,
-        interests=interests,
-        skill_level=skill_level,
-    )
+        quiz_user = QuizUser(
+            name=name,
+            age=(int(age) if age else None),
+            education=education,
+            interests=interests,
+            skill_level=skill_level,
+        )
 
-    from match import match_tracks
-    tracks = match_tracks(quiz_user, db.session)
+        from match import match_tracks
+        tracks = match_tracks(quiz_user, db.session)
 
-    return render_template(
-        "recommendations.html",
-        user=quiz_user,
-        tracks=tracks
-    )
+        return render_template(
+            "recommendations.html",
+            user=quiz_user,
+            tracks=tracks
+        )
+
+    except Exception as e:
+        app.logger.exception("🔥 Recommendation crash")
+        return "Internal Error", 500
+
+    finally:
+        db.session.remove()
     
     # db.session.add(new_user)
     # db.session.commit()
@@ -347,6 +354,7 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
     app.run(debug=True)
+
 
 
 
