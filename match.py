@@ -96,9 +96,16 @@ def match_tracks(user, db_session) -> List[Dict]:
     if sectors:
         conditions = []
         for s in sectors:
-            conditions.append(VocationalTrack.sector.ilike(f"%{s}%"))
-        q = q.filter(or_(*conditions))
-
+            # conditions.append(VocationalTrack.sector.ilike(f"%{s}%"))
+            conditions.append(
+                func.lower(VocationalTrack.sector).like(f"%{s.lower()}%")
+            )
+        q = q.filter(
+            VocationalTrack.sector.isnot(None),
+            or_(*conditions)
+        )
+        # q = q.filter(or_(*conditions))
+        
     tracks = q.all()
 
     # 🔥 FALLBACK — never return empty unless DB is empty
@@ -134,3 +141,4 @@ def match_tracks(user, db_session) -> List[Dict]:
         })
 
     return results
+
