@@ -286,7 +286,7 @@ def recommend():
         def __init__(self, name, age, education, interests, skill_level):
             self.name = name
             self.age = age
-            self.education_level = education
+            self.education = education
             self.interests = interests
             self.skill_level = skill_level
 
@@ -347,6 +347,7 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
     app.run(debug=True)
+
 
 
 
