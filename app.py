@@ -293,12 +293,8 @@ def recommend():
         skill_level=skill_level,
     )
 
-    try:
-        from match import match_tracks
-        tracks = match_tracks(quiz_user, db.session)
-    except Exception as e:
-        print("MATCH ERROR:", e)
-        tracks = []
+    from match import match_tracks
+    tracks = match_tracks(quiz_user, db.session)
 
     return render_template(
         "recommendations.html",
@@ -346,5 +342,6 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
     app.run(debug=True)
+
 
 
