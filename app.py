@@ -259,40 +259,6 @@ def quiz():
     # render a questionnaire page (templates/quiz.html)
     return render_template("quiz.html")
 
-# @app.route("/recommend", methods=["GET", "POST"])
-# def recommend():
-#     if request.method == "GET":
-#         # if logged-in user, you may show personalized recommendations (optional).
-#         if current_user.is_authenticated:
-#             # Construct a lightweight user-like object for matching from current_user fields
-#             user_like = current_user
-#             tracks = []  # fallback: you can call your match logic here if you have one that accepts current_user
-#             # Example: tracks = match_tracks(user_like, db.session)
-#             return render_template("recommendations.html", user=current_user, tracks=tracks)
-#         # otherwise send them to quiz to fill details
-#         return redirect(url_for("quiz"))
-
-#     # POST path: data came from quiz form
-#     name = request.form.get("name") or "Anonymous"
-#     age = request.form.get("age")
-#     #pincode = request.form.get("pincode")
-#     education = request.form.get("education")
-#     #language = request.form.get("language")
-#     interests = request.form.get("interests")  # can be comma-separated
-#     skill_level = request.form.get("skill_level")  # Beginner/Intermediate/Advanced
-
-#     # optionally persist the user info to DB for analytics (non-authenticated)
-#     new_user = User(
-#         name=name,
-#         age=(int(age) if age else None),
-#         #pincode=pincode,
-#         education=education,
-#         #language=language,
-#         interests=interests,
-#         skill_level=skill_level,
-#         # email/phone/password not set for anonymous quiz submit
-#     )
-
 @app.route("/recommend", methods=["GET", "POST"])
 def recommend():
     if request.method == "GET":
@@ -344,10 +310,10 @@ def recommend():
     # db.session.commit()
 
     # call your matching function (ensure match_tracks imported from match.py)
-    from match import match_tracks  # local import so file loads models first
-    tracks = match_tracks(new_user, db.session)
+    # from match import match_tracks  # local import so file loads models first
+    # tracks = match_tracks(new_user, db.session)
 
-    return render_template("recommendations.html", user=new_user, tracks=tracks)
+    # return render_template("recommendations.html", user=new_user, tracks=tracks)
 
 DEV_ADMIN_KEY = os.environ.get("DEV_ADMIN_KEY", "dev-secret")
 
@@ -380,4 +346,5 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
     app.run(debug=True)
+
 
